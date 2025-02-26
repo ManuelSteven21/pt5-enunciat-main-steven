@@ -43,6 +43,11 @@ public class GestorTasques {
             throw new Exception("La data d'inici no pot ser anterior a la data actual.");
         }
 
+        // Validar prioritat
+        if (prioritat != null && (prioritat < 1 || prioritat > 5)) {
+            throw new Exception("La prioritat ha de ser un valor entre 1 i 5");
+        }
+
         Tasca novaTasca = new Tasca(descripcio);
         novaTasca.setDataInici(dataInici);
         novaTasca.setDataFiPrevista(dataFiPrevista);
@@ -50,7 +55,7 @@ public class GestorTasques {
         llista.add(novaTasca);
 
         // Enviar notificació per correu
-        if(emailService != null){
+        if (emailService != null) {
             emailService.enviarCorreu(this.destinatari, "Nova Tasca Creada", "Has creat la tasca: " + descripcio);
         }
 
@@ -58,11 +63,13 @@ public class GestorTasques {
     }
 
     private void validarSiExisteixTasca(int id, String descripcio) throws Exception {
-
         for (Tasca tasca : llista) {
+            // Comprova si la descripció coincideix (ignorant majúscules/minúscules)
             if (tasca.getDescripcio().equalsIgnoreCase(descripcio)) {
-                if (tasca.getId() != id)
+                // Si el ID és diferent, llança una excepció
+                if (tasca.getId() != id) {
                     throw new Exception("Ja existeix una tasca amb la mateixa descripció");
+                }
             }
         }
     }
@@ -82,6 +89,7 @@ public class GestorTasques {
         for (Tasca tasca : llista) {
             if (tasca.getId() == id) {
                 tasca.setCompletada(true);
+                tasca.setDataFiReal(LocalDate.now()); // Assigna la data actual com a data de fi real
                 tascaModificada = tasca;
                 break;
             }
@@ -154,7 +162,9 @@ public class GestorTasques {
     public List<Tasca> llistarTasquesPerComplecio(boolean filtreCompletada) {
         List<Tasca> tasquesFiltrades = new ArrayList<>();
         for (Tasca tasca : llistarTasques()) {
-            if (tasca.isCompletada() && filtreCompletada) {
+            if (filtreCompletada && tasca.isCompletada()) {
+                tasquesFiltrades.add(tasca);
+            } else if (!filtreCompletada && !tasca.isCompletada()) {
                 tasquesFiltrades.add(tasca);
             }
         }
